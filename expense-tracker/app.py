@@ -1,6 +1,16 @@
-from flask import Flask, render_template
+import os
+from flask import Flask, render_template, g
+from database.db import get_db, init_db, seed_db
 
 app = Flask(__name__)
+app.config['DATABASE'] = os.path.join(app.root_path, 'spendly.db')
+
+
+@app.teardown_appcontext
+def close_db(exception):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
 
 
 # ------------------------------------------------------------------ #
@@ -25,16 +35,6 @@ def login():
 # ------------------------------------------------------------------ #
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
-
-@app.route("/terms")
-def terms():
-    return render_template("terms.html")
-
-
-@app.route("/privacy")
-def privacy():
-    return render_template("privacy.html")
-
 
 @app.route("/logout")
 def logout():
@@ -62,4 +62,7 @@ def delete_expense(id):
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        init_db()
+        seed_db()
     app.run(debug=True, port=5001)
